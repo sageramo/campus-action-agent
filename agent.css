@@ -59,9 +59,15 @@ h3 {
   grid-template-columns: 320px minmax(0, 1fr);
   min-height: 100vh;
   background: var(--panel);
+  transition: grid-template-columns 180ms ease;
+}
+
+.app-shell.sidebar-collapsed {
+  grid-template-columns: 72px minmax(0, 1fr);
 }
 
 .sidebar {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -69,10 +75,104 @@ h3 {
   background: var(--panel-soft);
   border-right: 1px solid var(--line);
   overflow-y: auto;
+  transition:
+    padding 180ms ease,
+    background-color 180ms ease;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 18px;
+  right: 16px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.sidebar-toggle:hover {
+  background: #f3f4f6;
+}
+
+.toggle-icon {
+  position: relative;
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.toggle-icon::before,
+.toggle-icon::after {
+  position: absolute;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  content: "";
+  border-top: 2px solid var(--muted);
+  border-left: 2px solid var(--muted);
+}
+
+.toggle-icon::before {
+  left: 1px;
+  transform: rotate(-45deg);
+}
+
+.toggle-icon::after {
+  right: 1px;
+  transform: rotate(135deg);
+}
+
+.app-shell.sidebar-collapsed .sidebar {
+  align-items: center;
+  padding: 18px 12px;
+  overflow: hidden;
+}
+
+.app-shell.sidebar-collapsed .sidebar-toggle {
+  position: static;
+  flex: 0 0 auto;
+  margin-bottom: 22px;
+}
+
+.app-shell.sidebar-collapsed .toggle-icon::before {
+  transform: rotate(135deg);
+}
+
+.app-shell.sidebar-collapsed .toggle-icon::after {
+  transform: rotate(-45deg);
+}
+
+.app-shell.sidebar-collapsed .brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.app-shell.sidebar-collapsed .brand-title {
+  writing-mode: vertical-rl;
+  color: var(--text);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.app-shell.sidebar-collapsed .brand p,
+.app-shell.sidebar-collapsed .intro,
+.app-shell.sidebar-collapsed .capabilities,
+.app-shell.sidebar-collapsed .examples,
+.app-shell.sidebar-collapsed .sidebar-footer {
+  display: none;
 }
 
 .brand {
-  padding-bottom: 28px;
+  padding: 0 40px 28px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -95,14 +195,22 @@ h3 {
   border-bottom: 1px solid var(--line);
 }
 
-.intro h1 {
-  font-size: 24px;
-  font-weight: 680;
-  letter-spacing: 0;
-  line-height: 1.25;
+.intro .eyebrow {
+  margin-bottom: 8px;
+  color: var(--subtle);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
 }
 
-.intro p {
+.intro h1 {
+  font-size: 32px;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.12;
+}
+
+.intro > p:not(.eyebrow) {
   margin-top: 14px;
   color: var(--muted);
   font-size: 14px;
@@ -198,6 +306,7 @@ h3 {
 
 .examples button:focus-visible,
 .ghost-button:focus-visible,
+.sidebar-toggle:focus-visible,
 .sidebar-footer a:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
@@ -323,3 +432,4 @@ iframe {
     width: 100%;
   }
 }
+
