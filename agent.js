@@ -9,7 +9,7 @@ function setSidebarCollapsed(collapsed) {
 
   appShell.classList.toggle("sidebar-collapsed", collapsed);
   sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
-  sidebarToggle.setAttribute("aria-label", collapsed ? "展开说明栏" : "收窄说明栏");
+  sidebarToggle.setAttribute("aria-label", collapsed ? "expand sidebar" : "collapse sidebar");
   localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
 }
 
@@ -18,13 +18,13 @@ async function copyPrompt(prompt) {
 
   try {
     await navigator.clipboard.writeText(prompt);
-    statusEl.textContent = "已复制";
+    statusEl.textContent = "Copied";
   } catch {
-    statusEl.textContent = "请手动复制";
+    statusEl.textContent = "Copy manually";
   }
 
   window.setTimeout(() => {
-    statusEl.textContent = "点击后复制";
+    statusEl.textContent = "Click to copy";
   }, 2200);
 }
 
@@ -41,7 +41,8 @@ if (resetButton) {
 }
 
 if (sidebarToggle && appShell) {
-  setSidebarCollapsed(localStorage.getItem("sidebarCollapsed") === "1");
+  const savedState = localStorage.getItem("sidebarCollapsed");
+  setSidebarCollapsed(savedState === null ? true : savedState === "1");
 
   sidebarToggle.addEventListener("click", () => {
     setSidebarCollapsed(!appShell.classList.contains("sidebar-collapsed"));
