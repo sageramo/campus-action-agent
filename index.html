@@ -7,15 +7,20 @@
     <link rel="stylesheet" href="./agent.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <main class="app-shell" id="appShell">
       <aside class="sidebar" aria-label="项目说明">
+        <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="收窄说明栏" aria-expanded="true">
+          <span class="toggle-icon" aria-hidden="true"></span>
+        </button>
+
         <header class="brand">
           <a class="brand-title" href="./">口述行动链</a>
           <p>把通知、活动想法和时间安排整理成可执行的行动方案。</p>
         </header>
 
         <section class="intro">
-          <h1>校园行动规划智能体</h1>
+          <p class="eyebrow">校园行动规划智能体</p>
+          <h1>口述行动链</h1>
           <p>
             面向校园办事、活动策划、多时间点通知和任务冲突判断，帮助用户快速看清要做什么、什么时候做、哪些事项需要取舍。
           </p>
@@ -67,7 +72,7 @@
       <section class="chat-panel" aria-label="智能体对话">
         <header class="chat-header">
           <div>
-            <h2>智能体对话</h2>
+            <h2>口述行动链</h2>
             <p>选择左侧示例并粘贴到输入框，或直接输入你的校园任务。</p>
           </div>
           <button class="ghost-button" type="button" id="resetHint">新对话</button>
