@@ -78,13 +78,36 @@
           <button class="ghost-button" type="button" id="resetHint">新对话</button>
         </header>
 
-        <div class="dify-frame-wrap">
-          <iframe
-            title="口述行动链 Dify 智能体"
-            src="https://udify.app/chat/719EqByTRKYYG25i"
-            allow="clipboard-read; clipboard-write"
-          ></iframe>
-        </div>
+        <section class="agent-preview" aria-label="智能体演示">
+          <div class="preview-copy">
+            <p class="eyebrow">LIVE PREVIEW</p>
+            <h3>先看清任务，再决定行动</h3>
+            <p>
+              为了保持页面稳定，正式对话将在新窗口打开 Dify 智能体。这里保留产品化演示视图，用于汇报时展示智能体的核心输出结构。
+            </p>
+            <div class="preview-actions">
+              <a class="primary-action" href="https://udify.app/chat/719EqByTRKYYG25i" target="_blank" rel="noreferrer">打开智能体</a>
+              <a class="secondary-action" href="./algorithm.html" target="_blank" rel="noreferrer">查看自研算法</a>
+            </div>
+          </div>
+
+          <div class="mock-chat" aria-label="演示输出">
+            <div class="mock-message user-message">
+              我 6 月 29 日开始期末考试，同时 6 月 18 日前要处理大广赛，晚上还有学生工作例会，帮我判断是否排得开。
+            </div>
+            <div class="mock-message assistant-message">
+              <strong>结论：排不开。</strong>
+              <p>复习高压期内需要准备 6 门课程，同时还叠加竞赛任务和学生工作例会，时间容量不足。</p>
+              <ul>
+                <li>期末复习：约 63 小时</li>
+                <li>大广赛：约 20 小时</li>
+                <li>两周可用时间：约 72 小时</li>
+                <li>缺口：约 12.5 小时</li>
+              </ul>
+              <p>建议：保留考试复习，压缩或委托例会，降低竞赛目标或拆分给队友。</p>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
     <script src="./agent.js"></script>
