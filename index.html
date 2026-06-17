@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="./agent.css" />
   </head>
   <body>
-    <main class="app-shell" id="appShell">
+    <main class="app-shell sidebar-collapsed" id="appShell">
       <aside class="sidebar" aria-label="项目说明">
-        <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="收窄说明栏" aria-expanded="true">
+        <button class="sidebar-toggle" type="button" id="sidebarToggle" aria-label="toggle sidebar" aria-expanded="false">
           <span class="toggle-icon" aria-hidden="true"></span>
         </button>
 
@@ -78,11 +78,13 @@
           <button class="ghost-button" type="button" id="resetHint">新对话</button>
         </header>
 
-        <iframe
-          title="口述行动链 Dify 智能体"
-          src="https://udify.app/chat/719EqByTRKYYG25i"
-          allow="clipboard-read; clipboard-write"
-        ></iframe>
+        <div class="dify-frame-wrap">
+          <iframe
+            title="口述行动链 Dify 智能体"
+            src="https://udify.app/chat/719EqByTRKYYG25i"
+            allow="clipboard-read; clipboard-write"
+          ></iframe>
+        </div>
       </section>
     </main>
     <script src="./agent.js"></script>
