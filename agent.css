@@ -425,6 +425,10 @@ h3 {
   line-height: 1.08;
 }
 
+.preview-copy h3 span {
+  display: block;
+}
+
 .preview-copy > p:not(.eyebrow) {
   margin-top: 18px;
   color: var(--muted);
