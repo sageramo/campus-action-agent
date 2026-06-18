@@ -7,7 +7,7 @@ const apiOutput = document.getElementById("apiOutput");
 const healthButton = document.getElementById("runHealthCheck");
 const parseButton = document.getElementById("runParseDemo");
 const conflictButton = document.getElementById("runConflictDemo");
-const difyUrl = "https://udify.app/chat/719EqByTRKYYG25i";
+const difyUrl = "https://udify.app/chat/Kj5b0eS5Bew0dRjU";
 const localApiBase = "http://127.0.0.1:8765";
 
 function getApiBase() {
