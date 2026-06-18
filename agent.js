@@ -7,69 +7,103 @@ const apiOutput = document.getElementById("apiOutput");
 const healthButton = document.getElementById("runHealthCheck");
 const parseButton = document.getElementById("runParseDemo");
 const conflictButton = document.getElementById("runConflictDemo");
-const difyUrl = "https://udify.app/chat/Kj5b0eS5Bew0dRjU";
+const openAgentButton = document.getElementById("openAgentPanel");
+const openAgentFooter = document.getElementById("openAgentFooter");
+const showApiButton = document.getElementById("showApiPanel");
+const showAgentButton = document.getElementById("showAgentPanel");
+const apiPanel = document.getElementById("apiPanel");
+const agentPanel = document.getElementById("agentPanel");
+
 const localApiBase = "http://127.0.0.1:8765";
 
 function getApiBase() {
   if (window.CAMPUS_AGENT_API) return window.CAMPUS_AGENT_API.replace(/\/$/, "");
-  if (localStorage.getItem("campusAgentApi")) return localStorage.getItem("campusAgentApi").replace(/\/$/, "");
+  const saved = localStorage.getItem("campusAgentApi");
+  if (saved) return saved.replace(/\/$/, "");
   if (location.protocol === "file:") return localApiBase;
   return location.origin;
 }
 
 function setSidebarCollapsed(collapsed) {
   if (!appShell || !sidebarToggle) return;
-
   appShell.classList.toggle("sidebar-collapsed", collapsed);
   sidebarToggle.setAttribute("aria-expanded", String(!collapsed));
   sidebarToggle.setAttribute("aria-label", collapsed ? "expand sidebar" : "collapse sidebar");
   localStorage.setItem("sidebarCollapsed", collapsed ? "1" : "0");
 }
 
+function setStage(stage) {
+  const showAgent = stage === "agent";
+  apiPanel?.classList.toggle("is-active", !showAgent);
+  agentPanel?.classList.toggle("is-active", showAgent);
+  showApiButton?.classList.toggle("is-active", !showAgent);
+  showAgentButton?.classList.toggle("is-active", showAgent);
+}
+
 async function copyPrompt(prompt) {
   if (!statusEl) return;
-
   try {
     await navigator.clipboard.writeText(prompt);
-    statusEl.textContent = "Copied";
+    statusEl.textContent = "已复制";
   } catch {
-    statusEl.textContent = "Copy manually";
+    statusEl.textContent = "请手动复制";
   }
-
   window.setTimeout(() => {
-    statusEl.textContent = "Click to copy";
+    statusEl.textContent = "点击后复制";
   }, 2200);
 }
 
 document.querySelectorAll("[data-prompt]").forEach((button) => {
-  button.addEventListener("click", () => {
-    copyPrompt(button.dataset.prompt);
-  });
+  button.addEventListener("click", () => copyPrompt(button.dataset.prompt));
 });
 
 if (resetButton) {
-  resetButton.addEventListener("click", () => {
-    window.open(difyUrl, "_blank", "noopener,noreferrer");
-  });
+  resetButton.addEventListener("click", () => setStage("agent"));
+}
+
+if (openAgentButton) {
+  openAgentButton.addEventListener("click", () => setStage("agent"));
+}
+
+if (openAgentFooter) {
+  openAgentFooter.addEventListener("click", () => setStage("agent"));
+}
+
+if (showApiButton) {
+  showApiButton.addEventListener("click", () => setStage("api"));
+}
+
+if (showAgentButton) {
+  showAgentButton.addEventListener("click", () => setStage("agent"));
 }
 
 if (sidebarToggle && appShell) {
   const savedState = localStorage.getItem("sidebarCollapsed");
-  setSidebarCollapsed(savedState === null ? true : savedState === "1");
-
+  setSidebarCollapsed(savedState === "1");
   sidebarToggle.addEventListener("click", () => {
     setSidebarCollapsed(!appShell.classList.contains("sidebar-collapsed"));
   });
 }
 
 function showApiResult(title, data) {
+  setStage("api");
   if (!apiOutput) return;
   apiOutput.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`;
 }
 
 function showApiError(error) {
+  setStage("api");
   if (!apiOutput) return;
-  apiOutput.textContent = `后端 API 暂未连接。\n\n请先启动或部署 Python 后端：\npython -m campus_agent.server\n\n如果后端部署在其他域名，可在浏览器控制台设置：\nlocalStorage.setItem("campusAgentApi", "https://你的后端域名")\n\n错误信息：${error.message || error}`;
+  apiOutput.textContent = [
+    "后端 API 暂未连接。",
+    "",
+    "请确认 Render 后端已部署，并且 web/deploy/api-config.js 中的地址正确。",
+    "",
+    "当前 API 地址：",
+    getApiBase(),
+    "",
+    `错误信息：${error.message || error}`,
+  ].join("\n");
 }
 
 async function apiFetch(path, options = {}) {
@@ -78,9 +112,7 @@ async function apiFetch(path, options = {}) {
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
     ...options,
   });
-  if (!response.ok) {
-    throw new Error(`${response.status} ${response.statusText}`);
-  }
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
   if (apiStatus) apiStatus.textContent = `API 已连接：${base}`;
   return response.json();
 }
@@ -120,7 +152,15 @@ async function runConflictDemo() {
       { task_id: "T5", name: "英语复习", category: "学习", priority: 82, estimated_hours: 7.5, must_do: true, deadline: "2026-06-29 09:00" },
       { task_id: "T6", name: "马原复习", category: "学习", priority: 82, estimated_hours: 7.5, must_do: true, deadline: "2026-06-29 09:00" },
       { task_id: "T7", name: "大广赛作品提交", category: "竞赛", priority: 70, estimated_hours: 20, must_do: false, deadline: "2026-06-18 16:00" },
-      { task_id: "T8", name: "学生工作例会", category: "学生工作", priority: 45, estimated_hours: 1.5, must_do: false, fixed_time: { start: "2026-06-18 19:00", end: "2026-06-18 20:30" } },
+      {
+        task_id: "T8",
+        name: "学生工作例会",
+        category: "学生工作",
+        priority: 45,
+        estimated_hours: 1.5,
+        must_do: false,
+        fixed_time: { start: "2026-06-18 19:00", end: "2026-06-18 20:30" },
+      },
     ],
   };
   try {
