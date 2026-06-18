@@ -80,36 +80,30 @@
 
         <section class="agent-preview" aria-label="智能体演示">
           <div class="preview-copy">
-            <p class="eyebrow">LIVE PREVIEW</p>
-            <h3>先看清任务，再决定行动</h3>
+            <p class="eyebrow">SELF-BUILT API</p>
+            <h3>前端已接入自研后端</h3>
             <p>
-              遇到了什么问题？我来帮你解决！
+              这里调用的是项目里的 Python API，不依赖 Dify。它负责规则解析、时间语义识别和冲突检测，Dify 负责对话编排与知识库问答。
             </p>
             <div class="preview-actions">
-              <a class="primary-action" href="https://udify.app/chat/719EqByTRKYYG25i" target="_blank" rel="noreferrer">打开智能体</a>
-              <a class="secondary-action" href="./algorithm.html" target="_blank" rel="noreferrer">查看自研算法</a>
+              <button class="primary-action" type="button" id="runParseDemo">运行通知解析 API</button>
+              <button class="secondary-action" type="button" id="runConflictDemo">运行冲突检测 API</button>
+              <a class="secondary-action" href="https://udify.app/chat/719EqByTRKYYG25i" target="_blank" rel="noreferrer">打开 Dify</a>
             </div>
+            <p class="api-note" id="apiStatus">API 地址：自动使用当前域名，失败时回退到 http://127.0.0.1:8765</p>
           </div>
 
-          <div class="mock-chat" aria-label="演示输出">
-            <div class="mock-message user-message">
-              我 6 月 29 日开始期末考试，同时 6 月 18 日前要处理大广赛，晚上还有学生工作例会，帮我判断是否排得开。
+          <div class="api-console" aria-label="API 演示输出">
+            <div class="console-top">
+              <span>API OUTPUT</span>
+              <button type="button" id="runHealthCheck">检查连接</button>
             </div>
-            <div class="mock-message assistant-message">
-              <strong>结论：排不开。</strong>
-              <p>复习高压期内需要准备 6 门课程，同时还叠加竞赛任务和学生工作例会，时间容量不足。</p>
-              <ul>
-                <li>期末复习：约 63 小时</li>
-                <li>大广赛：约 20 小时</li>
-                <li>两周可用时间：约 72 小时</li>
-                <li>缺口：约 12.5 小时</li>
-              </ul>
-              <p>建议：保留考试复习，压缩或委托例会，降低竞赛目标或拆分给队友。</p>
-            </div>
+            <pre id="apiOutput">点击左侧按钮，查看自研后端返回的结构化结果。</pre>
           </div>
         </section>
       </section>
     </main>
+    <script src="./api-config.js"></script>
     <script src="./agent.js"></script>
   </body>
 </html>
