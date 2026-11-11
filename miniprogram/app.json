@@ -1,0 +1,28 @@
+{
+  "pages": [
+    "pages/calendar/index",
+    "pages/import/index",
+    "pages/me/index"
+  ],
+  "window": {
+    "backgroundColor": "#f4f8fc",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "司序",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#586577",
+    "selectedColor": "#2563b8",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/calendar/index", "text": "画卷" },
+      { "pagePath": "pages/import/index", "text": "研墨" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

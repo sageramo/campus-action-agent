@@ -1,0 +1,24 @@
+<view class="wrap">
+  <view class="card">
+    <view class="eyebrow">我 的</view>
+    <view class="h1">{{name || '给自己取个名字'}}</view>
+    <view class="muted">用微信登录，不用注册和密码。清单存在你的微信账号下，换手机用同一个微信打开即可。</view>
+    <view class="row name">
+      <input class="name-input" value="{{draft}}" bindinput="onName" maxlength="20" placeholder="用户名，1–20字" />
+      <button class="btn small primary" bindtap="saveName">保存</button>
+    </view>
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+  </view>
+  <view class="card">
+    <view class="h2">清单里有</view>
+    <view class="stats">
+      <view class="stat" wx:for="{{counts}}" wx:key="index"><text class="num">{{item[0]}}</text><text class="muted">{{item[1]}}</text></view>
+    </view>
+  </view>
+  <view class="card">
+    <view class="h2">和网页版互通</view>
+    <view class="muted">在网页版点“导出清单”，把文件发到“文件传输助手”，再在这里选中它即可搬过来。</view>
+    <button class="btn block gap" bindtap="importFromWeb">从聊天里选网页版清单</button>
+    <button class="btn block gap" bindtap="exportBackup">把清单发给自己备份</button>
+  </view>
+</view>

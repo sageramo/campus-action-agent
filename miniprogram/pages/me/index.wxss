@@ -1,0 +1,6 @@
+.name { margin-top: 24rpx; }
+.name-input { flex: 1; height: 76rpx; padding: 0 24rpx; border-radius: 999rpx; background: #f7f9fc; border: 2rpx solid var(--line); }
+.stats { display: flex; justify-content: space-between; text-align: center; }
+.stat { display: flex; flex-direction: column; }
+.num { font-family: "Songti SC", serif; font-size: 40rpx; font-weight: 800; }
+.gap { margin-top: 20rpx; }

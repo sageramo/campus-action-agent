@@ -1,0 +1,11 @@
+{
+  "name": "sixu",
+  "version": "1.0.0",
+  "description": "司序小程序云函数：微信身份、每人一份清单、转发四层计算",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "wx-server-sdk": "~2.4.0"
+  }
+}

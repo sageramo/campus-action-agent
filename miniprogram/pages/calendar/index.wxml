@@ -1,0 +1,43 @@
+<view class="wrap">
+  <view class="card">
+    <view class="eyebrow">画 卷</view>
+    <view class="h1">{{weekLabel || '这一周'}}</view>
+    <view class="row nav">
+      <button class="btn small" data-step="-1" bindtap="shiftWeek">上一周</button>
+      <button class="btn small" data-step="0" bindtap="shiftWeek">本周</button>
+      <button class="btn small" data-step="1" bindtap="shiftWeek">下一周</button>
+    </view>
+    <view wx:if="{{loading}}" class="muted gap">正在计算这一周…（服务器闲置后第一次要半分钟左右）</view>
+    <view wx:if="{{error}}" class="error gap">{{error}}</view>
+    <view wx:if="{{brief.length}}" class="notice gap"><view wx:for="{{brief}}" wx:key="*this">{{item}}</view></view>
+    <view class="stats gap" wx:if="{{stats.length}}">
+      <view class="stat" wx:for="{{stats}}" wx:key="index"><text class="num">{{item[0]}}</text><text class="muted">{{item[1]}}</text></view>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{undoLabel || conflicts.length}}">
+    <view class="h2">叠墨 · 对策 <text class="badge">{{conflicts.length}}</text></view>
+    <view wx:if="{{undoLabel}}" class="undo row"><text>已采用：{{undoLabel}}</text><button class="btn small" bindtap="undoStrategy">撤销</button></view>
+    <view wx:if="{{note}}" class="leave">
+      <view class="muted">给老师的请假说明（草稿，【】里换成你的信息；司序不会替你发送）</view>
+      <view class="leave-text">{{note}}</view>
+      <view class="row"><button class="btn small primary" bindtap="copyNote">复制</button><button class="btn small" bindtap="closeNote">收起</button></view>
+    </view>
+    <view class="cx" wx:for="{{conflicts}}" wx:key="key" wx:for-item="cx">
+      <view class="cx-head"><text class="cx-label">{{cx.label}}</text><text class="muted">{{cx.when}}</text></view>
+      <view class="cx-advice">{{cx.advice}}</view>
+      <button wx:for="{{cx.strategies}}" wx:key="index" class="cx-option {{item.recommended ? 'is-rec' : ''}}" data-conflict="{{cx.id}}" data-index="{{item.index}}" bindtap="applyStrategy">
+        <view class="cx-option-label"><text wx:if="{{item.recommended}}" class="tag rec">推荐</text>{{item.label}}</view>
+        <view class="cx-option-detail">{{item.detail}}</view>
+      </button>
+    </view>
+  </view>
+
+  <view class="card day {{item.today ? 'is-today' : ''}} {{item.past ? 'is-past' : ''}}" wx:for="{{days}}" wx:key="label">
+    <view class="day-head"><text class="day-label">{{item.label}}</text><text wx:if="{{item.today}}" class="tag today">今天</text><text class="muted free">留白 {{item.free}} 时</text></view>
+    <view wx:if="{{!item.rows.length}}" class="muted">这一天还没有安排。</view>
+    <view wx:for="{{item.rows}}" wx:key="key" wx:for-item="row" class="cal-row layer-{{row.layer}} {{row.conflict ? 'is-conflict' : ''}}">
+      <text class="time">{{row.time}}</text><text class="title">{{row.title}}</text><text class="layer">{{row.layerName}}</text>
+    </view>
+  </view>
+</view>

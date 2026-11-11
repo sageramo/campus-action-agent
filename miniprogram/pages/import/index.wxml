@@ -1,0 +1,19 @@
+<view class="wrap">
+  <view class="card">
+    <view class="eyebrow">研 墨</view>
+    <view class="h1">导入一份通知</view>
+    <view class="muted">有起止时间的活动成为点墨，有截止的事进入落笔；没写清楚的先记作“待书”。</view>
+    <textarea class="ink" value="{{text}}" bindinput="onInput" maxlength="20000" placeholder="在微信里长按通知 → 复制，再粘贴到这里" auto-height="{{false}}" />
+    <view class="row actions">
+      <button class="btn small" bindtap="pasteClipboard">从剪贴板粘贴</button>
+    </view>
+    <button class="btn primary block" bindtap="importNotice" loading="{{busy}}" disabled="{{busy}}">导入</button>
+    <view wx:if="{{busy}}" class="muted gap">正在整理事项与时间…（服务器闲置后第一次要半分钟左右）</view>
+    <view wx:if="{{error}}" class="error gap">{{error}}</view>
+    <view wx:if="{{summary}}" class="notice gap">
+      <view>{{summary}}</view>
+      <button class="btn small gap" bindtap="toCalendar">去画卷看看</button>
+    </view>
+  </view>
+  <view class="muted tip">通知原文会发给司序的计算服务整理；清单存在你自己的微信账号下，只有你能看到。</view>
+</view>

@@ -1,0 +1,1 @@
+{ "desc": "司序的清单属于个人，不参与微信搜索索引。", "rules": [{ "action": "disallow", "page": "*" }] }
