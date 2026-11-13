@@ -5,8 +5,25 @@ import { isPersonal, setPersonalDay, setReferenceTime, updateTask } from './time
 const MINUTE = 60000;
 const DAY = 1440 * MINUTE;
 const OFFSET = 8 * 60 * MINUTE;
-const duration = /(\d{1,4}(?:\.\d{1,2})?)\s*(?:个\s*)?(小时|分钟|h)/i;
-const durationMinutes = match => match ? Math.round(Number(match[1]) * (match[2] === '分钟' ? 1 : 60)) : null;
+const number = String.raw`(?:\d+(?:\.\d+)?|[零〇一二两三四五六七八九十]{1,3})`;
+const duration = String.raw`(?:半\s*(?:个\s*)?小时|(?<hours>${number})\s*(?:个\s*(?<leadingHalf>半\s*)?)?(?:小时|h(?![a-z]))(?:\s*(?<extra>${number})\s*分钟|\s*(?<half>半))?|(?<minutes>${number})\s*分钟)`;
+const durationPattern = new RegExp(String.raw`(?<![\d.点:：])${duration}`, 'gi');
+const reservePrefix = /(?:预留|保留|留(?:出|下|够)?)\s*$/;
+const reserveSuffix = /^\s*(?:(?:的)?(?:休息|留白|缓冲)(?:时间)?|(?:给|用来|用于)\s*(?:休息|放松|吃饭))/;
+const numberValue = value => {
+  if (/^\d/.test(value)) return Number(value);
+  const digit = char => '零一二三四五六七八九'.indexOf(char === '两' ? '二' : char === '〇' ? '零' : char);
+  if (!value.includes('十')) return value.length === 1 && digit(value) >= 0 ? digit(value) : NaN;
+  if (!/^[一二两三四五六七八九]?十[一二两三四五六七八九]?$/.test(value)) return NaN;
+  const [tens, ones] = value.split('十');
+  return (tens ? digit(tens) : 1) * 10 + (ones ? digit(ones) : 0);
+};
+const durationMinutes = match => {
+  const { hours, extra, half, leadingHalf, minutes } = match.groups;
+  const value = hours ? numberValue(hours) * 60 + (extra ? numberValue(extra) : half || leadingHalf ? 30 : 0)
+    : minutes ? numberValue(minutes) : 30;
+  return Math.ceil(value);
+};
 const dayOf = ms => new Date(ms + OFFSET).toISOString().slice(0, 10);
 const dayLabel = ms => dayOf(ms).slice(5).replace('-', '月') + '日';
 const clock = ms => new Date(ms + OFFSET).toISOString().slice(11, 16);
@@ -15,13 +32,28 @@ function capacityQuestion(text) {
   const planning = /(?:^试算|剩.*(?:时间|空档|留白)|(?:多少|几个|还有|多长).*(?:空档|空闲|留白)|有空(?:吗|没|么|[？?])|排得下|排不下|时间够|够不够|来得及|(?:再接|能接|还能|想接).*(?:社团|活动|组织|工作))/;
   if (/\n|^【|^.{0,12}通知[:：]|各位同学|请各班/.test(text) || text.length > 250) return null;
   if (!planning.test(text)) return null;
-  const reservePattern = new RegExp(`(?:想|至少|还要)?(?:预留|保留|留(?:出|下)?)\\s*${duration.source}`, 'i');
-  const reserveMatch = text.match(reservePattern);
-  const needed = durationMinutes(text.replace(reservePattern, '').match(duration));
+  const needed = [], reserved = [];
+  let masked = text;
+  const durationRange = /[\d一二两三四五六七八九十半]\s*(?:到|至|[-~～–—])\s*(?:\d|[一二两三四五六七八九十半])/;
+  for (const match of text.matchAll(durationPattern)) {
+    const end = match.index + match[0].length;
+    const prefix = text.slice(0, match.index);
+    const suffix = text.slice(end);
+    const values = reservePrefix.test(prefix) || reserveSuffix.test(suffix) ? reserved : needed;
+    values.push(durationMinutes(match));
+    masked = masked.slice(0, match.index) + ' '.repeat(match[0].length) + masked.slice(end);
+  }
+  // Ask for an explicit minute count when any part of the request is still ambiguous.
+  const ambiguous = ((needed.length || reserved.length) > 0 && durationRange.test(text) && !/\d{1,2}[:：]\d{2}/.test(text))
+    || needed.length > 1 || reserved.length > 1
+    || [...needed, ...reserved].some(value => !Number.isSafeInteger(value))
+    || /(?:预留|保留|留(?:出|下|够)?)\s*[^，,。]{0,10}(?:休息|缓冲|小时|钟头|分钟|个钟)/.test(masked) && !reserved.length
+    || /[\d半一二两三四五六七八九十几]+\s*(?:个\s*)?(?:小时|钟头|分钟|个钟|天|个半小时)/.test(masked);
   const fixed = /(?:周|星期)[一二三四五六日天]|(?:明天|后天|周末|上午|下午|中午|晚上|早上)|\d{1,2}(?:月|日|号|点|[:：]\d{2})/.test(text);
-  const reserve = durationMinutes(reserveMatch) ?? 0;
   return { scope: /下周/.test(text) ? 'next' : /今天|今晚/.test(text) ? 'today' : 'week',
-    needed, reserve, fixed, split: /(?:可以|能|允许|愿意)拆|分开做|分几次/.test(text) && !/不能拆|不可以拆|一次做完/.test(text) };
+    needed: needed[0] ?? null, reserve: reserved[0] ?? 0, ambiguous, fixed,
+    split: /(?:可以|能|允许|愿意)拆|分开做|分几次/.test(text) && !/不能拆|不可以拆|一次做完/.test(text) };
+
 }
 
 function capacityBounds(scope, now) {
@@ -34,6 +66,7 @@ function capacityBounds(scope, now) {
 
 export async function answerCapacity(snapshot, question, now, calculate) {
   const label = { next: '下周', today: '今天', week: '本周' }[question.scope];
+  if (question.ambiguous) return { text: '请分别写清新增用时和想预留的时间，例如「再接90分钟，留30分钟休息」。' };
   if (question.fixed) return { text: '这次试算支持今天、本周或下周的总量和连续空档。你提到了具体日期或时段，可以到画卷核对那一段是否有安排。', action: 'calendar', week: capacityBounds(question.scope, now).start };
   if (!snapshot.daily_window) return { text: '先设置作息，再把课表和固定例会补进来，我才能估算还有多少时间。', action: 'setup' };
   if (question.needed === 0) return { text: '新承诺至少需要 1 分钟，请再告诉我预计用时。' };
@@ -49,7 +82,8 @@ export async function answerCapacity(snapshot, question, now, calculate) {
     const item = byId.get(issue.id);
     if (!item) return false;
     const date = Date.parse(item.start_at || item.deadline_at);
-    if (item.start_at) return date >= from && date < to;
+    if (issue.type.endsWith('_time_invalid') || issue.type === 'event_time_pending') return true;
+    if (item.start_at) return date < to;
     const earliest = Date.parse(item.earliest_start_at);
     return (!Number.isFinite(earliest) || earliest < to) && (!Number.isFinite(date) || date >= from);
   };
@@ -91,7 +125,7 @@ export async function agendaReply(text, { snapshot, lastTaskId, calculate, now =
   const completed = /^(?:我)?(?:刚刚|已经)?(?:做完了|完成了|搞定了|交了|练了|练完了|好了|做了|健身了|做完啦|完成啦)$/;
   const unfinished = /^(?:我)?(?:今天)?(?:还没做(?:完)?|没做|没练|没完成|没有完成|没健身)(?:了)?$/;
   const move = line.match(/^(?:把它|把刚才那件事|那件事)?(?:改到|挪到|推到)(今天|明天|后天)(?:做)?$/);
-  const changeDuration = line.match(new RegExp(`^(?:它|刚才那件事)?(?:大概|大约|预计|要用|需要|用时|改成|要)?\\s*${duration.source}(?:左右|吧|就够了)?$`, 'i'));
+  const changeDuration = line.match(new RegExp(String.raw`^(?:它|刚才那件事)?(?:大概|大约|预计|要用|需要|用时|改成|要)?\s*${duration}(?:左右|吧|就够了)?$`, 'i'));
   if (completed.test(line) || unfinished.test(line) || move || changeDuration) {
     const task = snapshot.tasks.find(item => item.id === lastTaskId && isPersonal(item) && item.status !== 'cancelled');
     if (!task) return { text: '你说的是哪件事？可以在落笔里找到对应任务并更新。', action: 'tasks' };
@@ -105,7 +139,7 @@ export async function agendaReply(text, { snapshot, lastTaskId, calculate, now =
     }
     if (changeDuration) {
       const estimate = durationMinutes(changeDuration);
-      if (estimate < 1 || estimate > 20160) return { text: '预计用时需要在 1 到 20160 分钟之间。' };
+      if (!Number.isSafeInteger(estimate) || estimate < 1 || estimate > 20160) return { text: '预计用时需要在 1 到 20160 分钟之间。' };
       return { text: `「${task.title}」的预计用时改成 ${minutesLabel(estimate)}。`,
         next: updateTask(snapshot, task.id, { estimate_minutes: estimate }), action: 'calendar' };
     }

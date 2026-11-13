@@ -3,7 +3,7 @@ import { SnapshotStore } from './snapshot-store.js';
 import {
   TIME_STORAGE_KEY, ESTIMATE_PRESETS, createTimeSnapshot, serializeTimeSnapshot, parseTimeSnapshot, readTimeSnapshot,
   addImported, updateTask, updateEvent, addTask, addEvent, removeItem, setDailyWindow, addRoutine,
-  addAdjustment, addTimetable, setReferenceTime, skipRoutineDate, isPersonal, personalDay, addPersonalTask, setPersonalDay,
+  addAdjustment, addTimetable, setReferenceTime, skipRoutineDate, isPersonal, personalDay, addPersonalTask, setPersonalDay, setTaskDeadline,
 } from './time-state.js';
 import { agendaReply, hasPersonalClock, isConversation } from './agenda.js';
 import { calendarMarkup, conflictKey, weekStart, weekRange } from './calendar.js';
@@ -29,7 +29,7 @@ const DEFAULT_WINDOW = [...Array(5).fill({ start: '08:00', end: '23:00' }), ...A
 const DEFAULT_PERIODS = ['1 08:00-08:50', '2 09:00-09:50', '3 10:10-11:00', '4 11:10-12:00', '5 13:30-14:20', '6 14:20-15:10',
   '7 15:30-16:20', '8 16:20-17:00', '9 18:00-18:50', '10 19:00-19:50', '11 20:00-20:50', '12 21:00-21:50'].join('\n');
 // 书画 names: 底色 routine, 留白 free, 落笔 work and appointments, 点墨 temporary, 叠墨 conflict, 待书 undefined.
-const TASK_STATE = { scheduled: ['已落笔', 'ok'], estimate_undefined: ['待书：预计用时未填', 'undefined'], deadline_undefined: ['待书：截止未填', 'undefined'],
+const TASK_STATE = { time_invalid: ['待书：请核对任务时间', 'undefined'], scheduled: ['已落笔', 'ok'], estimate_undefined: ['待书：预计用时未填', 'undefined'], deadline_undefined: ['待书：截止未填', 'undefined'],
   free_time_undefined: ['待书：留白未设定', 'undefined'], short: ['留白不够落笔', 'conflict'], overdue: ['已过截止', 'conflict'],
   beyond_horizon: ['截止超出31天，临近再排', 'undefined'], not_attempted: ['暂未安排', 'undefined'], completed: ['已完成', 'done'], cancelled: ['不做了', 'done'] };
 const currentMinuteISO = () => new Date(Math.ceil(Date.now() / 60000) * 60000).toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -779,6 +779,7 @@ function fieldValue(input) {
 }
 function editItem(card, patch) {
   const id = card.dataset.itemId;
+  if (card.dataset.kind === 'task' && Object.hasOwn(patch, 'deadline_at')) return setTaskDeadline(snapshot, id, patch.deadline_at);
   return card.dataset.kind === 'task' ? updateTask(snapshot, id, patch) : updateEvent(snapshot, id, patch);
 }
 function onItemChange(event) {
