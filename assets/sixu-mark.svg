@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-labelledby="t">
+  <title id="t">司序 Marshal</title>
+  <!-- 金针 M：粗细一致的 M，两峰之间悬一根罗盘针，上半实心、下半细线（先实后虚）。 -->
+  <rect width="100" height="100" rx="22" fill="#14212e"/>
+  <g transform="translate(10 8) scale(.8)">
+    <path d="M22 86V28H30.56L50 63.64L69.44 28H78V86H70V43.69L54.56 72H45.44L30 43.69V86Z" fill="#f2efe6"/>
+    <path d="M50 14L53.2 40.4H46.8Z" fill="#d9b25c"/><path d="M46.8 40.4L50 62L53.2 40.4" fill="none" stroke="#d9b25c" stroke-width="3"/>
+  </g>
+</svg>
