@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/calendar/index",
     "pages/import/index",
+    "pages/calendar/index",
     "pages/me/index"
   ],
   "window": {
@@ -17,8 +17,8 @@
     "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
+      { "pagePath": "pages/import/index", "text": "研磨" },
       { "pagePath": "pages/calendar/index", "text": "画卷" },
-      { "pagePath": "pages/import/index", "text": "研墨" },
       { "pagePath": "pages/me/index", "text": "我的" }
     ]
   },

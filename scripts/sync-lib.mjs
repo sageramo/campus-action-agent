@@ -11,10 +11,10 @@ const header = name => `// GENERATED from campus-action-agent/${name} by scripts
 const swaps = [
   [/structuredClone\(value\)/g, 'JSON.parse(JSON.stringify(value))'],
   [/new TextEncoder\(\)\.encode\((\w+)\)\.(byteLength|length)/g, 'utf8Length($1)'],
-  [/globalThis\.crypto\?\.randomUUID\?\.\(\)/g, 'undefined'],
+  [/globalThis\.crypto\?\.randomUUID\?\.\(\)(?:\.replace\(\/-\/g, ''\)\.slice\(0, 12\))?/g, 'undefined'],
 ];
 const helper = "const utf8Length = text => { let n = 0; for (const ch of String(text)) { const c = ch.codePointAt(0); n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4; } return n; };\n";
-for (const name of ['task-state.js', 'time-state.js', 'shanshui.js', 'calendar.js']) {
+for (const name of ['task-state.js', 'time-state.js', 'shanshui.js', 'calendar.js', 'agenda.js']) {
   let source = readFileSync(new URL(name, web), 'utf8');
   for (const [pattern, replacement] of swaps) source = source.replace(pattern, replacement);
   const needsHelper = source.includes('utf8Length(');

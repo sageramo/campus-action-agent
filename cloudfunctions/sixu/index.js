@@ -11,7 +11,7 @@ const MAX_LIST_BYTES = 5 * 1024 * 1024;
 const NAME_MAX = 20;
 // Only these back-end paths are forwarded; model modes need the server's access code (set
 // SIXU_ACCESS in the cloud function's environment variables) and are refused without it.
-const PATHS = new Set(['/api/health', '/api/v3/calendar', '/api/v3/extract', '/api/v3/estimate-end', '/api/v3/advise']);
+const PATHS = new Set(['/api/health', '/api/v3/calendar', '/api/v3/extract', '/api/v3/estimate-end', '/api/v3/advise', '/api/v3/chat']);
 
 async function ensureCollections() {
   for (const name of ['users', 'snapshots']) {
@@ -20,7 +20,8 @@ async function ensureCollections() {
 }
 
 async function getDoc(collection, id) {
-  try { return (await db.collection(collection).doc(id).get()).data; } catch (error) { return null; }
+  const { data } = await db.collection(collection).where({ _id: id }).limit(1).get();
+  return data[0] || null;
 }
 
 function forward(path, body) {
@@ -79,11 +80,23 @@ const actions = {
   async save(openid, { text, baseRevision }) {
     if (typeof text !== 'string' || Buffer.byteLength(text, 'utf8') > MAX_LIST_BYTES) throw new Error('清单过大，请先在网页版导出备份并拆分。');
     try { JSON.parse(text); } catch (error) { throw new Error('清单不是有效的 JSON'); }
+    if (!Number.isSafeInteger(baseRevision) || baseRevision < 0) throw new Error('清单版本号无效');
+    const snapshots = db.collection('snapshots');
+    const data = { text, revision: baseRevision + 1, saved_at: db.serverDate() };
+    if (baseRevision === 0) {
+      try {
+        await snapshots.add({ data: { _id: openid, ...data } });
+        return { conflict: false, revision: 1 };
+      } catch (error) {
+        const current = await getDoc('snapshots', openid);
+        if (!current) throw error;
+        return { conflict: true, text: current.text, revision: current.revision };
+      }
+    }
+    const saved = await snapshots.where({ _id: openid, revision: baseRevision }).update({ data });
+    if (saved.stats.updated === 1) return { conflict: false, revision: data.revision };
     const current = await getDoc('snapshots', openid);
-    const revision = current ? current.revision : 0;
-    if (current && baseRevision !== revision) return { conflict: true, text: current.text, revision };
-    await db.collection('snapshots').doc(openid).set({ data: { text, revision: revision + 1, saved_at: db.serverDate() } });
-    return { conflict: false, revision: revision + 1 };
+    return { conflict: true, text: current ? current.text : null, revision: current ? current.revision : 0 };
   },
 
   async api(openid, { path, body }) {

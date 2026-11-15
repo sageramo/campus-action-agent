@@ -13,7 +13,7 @@ Page({
       const active = list => list.filter(item => item.status !== 'cancelled' && item.status !== 'completed').length;
       this.setData({
         name: profile.name, draft: profile.name, error: '',
-        counts: [[snapshot.routines.length, '底色'], [active(snapshot.tasks), '截止之事'], [active(snapshot.events), '点墨与约定'], [snapshot.sources.length, '份原文']],
+        counts: [[snapshot.routines.length, '底色'], [active(snapshot.tasks), '任务'], [active(snapshot.events), '点墨与约定'], [snapshot.sources.length, '份原文']],
       });
     } catch (error) { this.setData({ error: error.message }); }
   },
@@ -37,13 +37,14 @@ Page({
         } catch (error) { wx.showToast({ title: `读不出这份清单：${error.message}`, icon: 'none' }); return; }
         wx.showModal({
           title: '用这份清单替换云端的？',
-          content: `其中有 ${next.tasks.length} 件截止之事、${next.events.length} 处点墨与约定、${next.routines.length} 项底色。替换后原来的云端清单不再保留。`,
+          content: `其中有 ${next.tasks.length} 件任务、${next.events.length} 处点墨与约定、${next.routines.length} 项底色。替换后原来的云端清单不再保留。`,
           confirmText: '替换',
           success: async ({ confirm }) => {
             if (!confirm) return;
-            await commit({ ...next, revision: getState().snapshot.revision + 1 });
-            wx.showToast({ title: '已换成这份清单', icon: 'success' });
-            this.onShow();
+            try {
+              if (await commit({ ...next, revision: getState().snapshot.revision + 1 })) wx.showToast({ title: '已换成这份清单', icon: 'success' });
+              this.onShow();
+            } catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
           },
         });
       },

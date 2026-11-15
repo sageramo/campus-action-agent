@@ -1,6 +1,5 @@
 <view class="wrap">
   <view class="card">
-    <view class="eyebrow">画 卷</view>
     <view class="h1">{{weekLabel || '这一周'}}</view>
     <view class="row nav">
       <button class="btn small" data-step="-1" bindtap="shiftWeek">上一周</button>
@@ -9,10 +8,87 @@
     </view>
     <view wx:if="{{loading}}" class="muted gap">正在计算这一周…（服务器闲置后第一次要半分钟左右）</view>
     <view wx:if="{{error}}" class="error gap">{{error}}</view>
+    <view wx:if="{{capacity}}" class="capacity gap">
+      <view class="muted">剩余可用时间</view>
+      <view class="capacity-total">{{capacity.total}}</view>
+      <view class="muted">最长连续 {{capacity.longest}}，已扣除排定的任务。</view>
+      <view wx:if="{{capacity.pending}}" class="muted">待补时间的事项可能占用空档。</view>
+      <button class="btn small gap" bindtap="tryCapacity">试算一项新承诺</button>
+    </view>
+    <button class="btn small gap" bindtap="toggleSetup">{{showSetup ? '收起作息' : '设置作息'}}</button>
+    <view wx:if="{{showSetup}}" class="gap">
+      <view class="muted">同一作息应用到每天。课表和固定例会可在网页版设置后导入。</view>
+      <view class="row gap">
+        <picker mode="time" value="{{dayStart}}" data-field="dayStart" bindchange="taskInput"><view class="btn small">开始 {{dayStart}}</view></picker>
+        <picker mode="time" value="{{dayEnd}}" data-field="dayEnd" bindchange="taskInput"><view class="btn small">结束 {{dayEnd}}</view></picker>
+      </view>
+      <button class="btn small primary gap" bindtap="saveWindow" disabled="{{taskBusy}}">保存每天作息</button>
+    </view>
     <view wx:if="{{brief.length}}" class="notice gap"><view wx:for="{{brief}}" wx:key="*this">{{item}}</view></view>
     <view class="stats gap" wx:if="{{stats.length}}">
       <view class="stat" wx:for="{{stats}}" wx:key="index"><text class="num">{{item[0]}}</text><text class="muted">{{item[1]}}</text></view>
     </view>
+  </view>
+
+  <view wx:if="{{timeEdit}}" class="card time-editor" id="time-editor">
+    <view class="h2">修改时间</view>
+    <view class="time-editor-title">{{timeEdit.title}}</view>
+    <view wx:if="{{timeEdit.kind === 'event'}}" class="time-field">
+      <view class="muted">开始</view>
+      <view class="row task-controls">
+        <picker mode="date" value="{{timeEdit.start.day || taskDay}}" data-side="start" data-field="day" bindchange="editTimePart" disabled="{{taskBusy}}"><view class="btn small">{{timeEdit.start.day || '选日期'}}</view></picker>
+        <picker mode="time" value="{{timeEdit.start.time || '09:00'}}" data-side="start" data-field="time" bindchange="editTimePart" disabled="{{taskBusy}}"><view class="btn small">{{timeEdit.start.time || '选时间'}}</view></picker>
+        <button class="btn small" data-side="start" bindtap="clearTimePart" disabled="{{taskBusy || (!timeEdit.start.day && !timeEdit.start.time)}}">清空</button>
+      </view>
+    </view>
+    <view class="time-field">
+      <view class="muted">{{timeEdit.kind === 'task' ? '截止' : '结束'}}</view>
+      <view class="row task-controls">
+        <picker mode="date" value="{{timeEdit.end.day || timeEdit.start.day || taskDay}}" data-side="end" data-field="day" bindchange="editTimePart" disabled="{{taskBusy}}"><view class="btn small">{{timeEdit.end.day || '选日期'}}</view></picker>
+        <picker mode="time" value="{{timeEdit.end.time || '17:00'}}" data-side="end" data-field="time" bindchange="editTimePart" disabled="{{taskBusy}}"><view class="btn small">{{timeEdit.end.time || '选时间'}}</view></picker>
+        <button class="btn small" data-side="end" bindtap="clearTimePart" disabled="{{taskBusy || (!timeEdit.end.day && !timeEdit.end.time)}}">清空</button>
+      </view>
+    </view>
+    <view wx:if="{{timeError}}" class="error gap">{{timeError}}</view>
+    <view class="row task-controls gap">
+      <button class="btn small primary" bindtap="saveTimeEditor" loading="{{taskBusy}}" disabled="{{taskBusy}}">保存时间</button>
+      <button class="btn small" bindtap="closeTimeEditor" disabled="{{taskBusy}}">取消</button>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="row tasks-head"><view class="h2">落笔 · 个人任务</view><button class="btn small" bindtap="toggleTasks">{{showTasks ? '收起' : '展开'}}</button></view>
+    <block wx:if="{{showTasks}}">
+      <view wx:for="{{tasks}}" wx:key="id" class="personal-task">
+        <view class="personal-title">{{item.title}}<text wx:if="{{item.status === 'completed'}}" class="muted"> · 已完成</text></view>
+        <view class="row task-controls">
+          <text wx:if="{{item.timed}}" class="muted">{{item.deadline.day}} {{item.deadline.time}} 前</text>
+          <picker wx:else mode="date" value="{{item.day}}" data-id="{{item.id}}" data-field="day" bindchange="editTask" disabled="{{taskBusy}}"><view class="btn small">{{item.day || '选日期'}}</view></picker>
+          <button class="btn small" data-kind="task" data-id="{{item.id}}" bindtap="openTimeEditor" disabled="{{taskBusy}}">改截止</button>
+          <input type="number" value="{{item.estimate}}" placeholder="预计分钟" data-id="{{item.id}}" data-field="estimate" bindblur="editTask" disabled="{{taskBusy}}" />
+          <button wx:if="{{item.status !== 'cancelled'}}" class="btn small" data-id="{{item.id}}" data-status="{{item.status}}" bindtap="editTask" disabled="{{taskBusy}}">{{item.status === 'completed' ? '恢复' : '完成了'}}</button>
+        </view>
+      </view>
+      <input class="task-new" value="{{taskTitle}}" maxlength="200" placeholder="新的个人任务" data-field="taskTitle" bindinput="taskInput" />
+      <view class="row task-controls">
+        <picker mode="date" value="{{taskDay}}" data-field="taskDay" bindchange="taskInput"><view class="btn small">{{taskDay}}</view></picker>
+        <input type="number" value="{{taskEstimate}}" placeholder="预计分钟" data-field="taskEstimate" bindinput="taskInput" />
+        <button class="btn small primary" bindtap="createTask" disabled="{{taskBusy || !taskTitle}}">添加</button>
+      </view>
+    </block>
+  </view>
+
+  <view class="card" wx:if="{{events.length}}">
+    <view class="row tasks-head"><view class="h2">活动与约定</view><button class="btn small" bindtap="toggleEvents">{{showEvents ? '收起' : '展开'}}</button></view>
+    <block wx:if="{{showEvents}}">
+      <view wx:for="{{events}}" wx:key="id" class="personal-task">
+        <view class="personal-title">{{item.title}} <text class="muted">{{item.kind}}</text></view>
+        <view class="row task-controls">
+          <text class="muted">{{item.start.day ? item.start.day + ' ' + item.start.time : '开始待书'}} — {{item.end.day ? item.end.day + ' ' + item.end.time : '结束待书'}}</text>
+          <button class="btn small" data-kind="event" data-id="{{item.id}}" bindtap="openTimeEditor" disabled="{{taskBusy}}">改起止</button>
+        </view>
+      </view>
+    </block>
   </view>
 
   <view class="card" wx:if="{{undoLabel || conflicts.length}}">
@@ -34,7 +110,7 @@
   </view>
 
   <view class="card day {{item.today ? 'is-today' : ''}} {{item.past ? 'is-past' : ''}}" wx:for="{{days}}" wx:key="label">
-    <view class="day-head"><text class="day-label">{{item.label}}</text><text wx:if="{{item.today}}" class="tag today">今天</text><text class="muted free">留白 {{item.free}} 时</text></view>
+    <view class="day-head"><text class="day-label">{{item.label}}</text><text wx:if="{{item.today}}" class="tag today">今天</text></view>
     <view wx:if="{{!item.rows.length}}" class="muted">这一天还没有安排。</view>
     <view wx:for="{{item.rows}}" wx:key="key" wx:for-item="row" class="cal-row layer-{{row.layer}} {{row.conflict ? 'is-conflict' : ''}}">
       <text class="time">{{row.time}}</text><text class="title">{{row.title}}</text><text class="layer">{{row.layerName}}</text>

@@ -1,19 +1,31 @@
-<view class="wrap">
-  <view class="card">
-    <view class="eyebrow">研 墨</view>
-    <view class="h1">导入一份通知</view>
-    <view class="muted">有起止时间的活动成为点墨，有截止的事进入落笔；没写清楚的先记作“待书”。</view>
-    <textarea class="ink" value="{{text}}" bindinput="onInput" maxlength="20000" placeholder="在微信里长按通知 → 复制，再粘贴到这里" auto-height="{{false}}" />
-    <view class="row actions">
-      <button class="btn small" bindtap="pasteClipboard">从剪贴板粘贴</button>
+<view class="ink-page">
+  <scroll-view class="ink-scroll" scroll-y scroll-into-view="{{anchor}}" enhanced>
+    <view class="ink-content">
+      <view wx:if="{{!turns.length}}" class="ink-welcome">
+        <view class="h1">今天想安排什么？</view>
+        <view class="muted">粘贴群通知、记一件个人任务，或问问这周还能不能接新活动。</view>
+        <button class="btn small" data-text="提醒我今天写实验报告" bindtap="suggest">记一件个人任务</button>
+        <button class="btn small" data-text="这周再接4小时的社团工作，留6小时休息，时间够吗？" bindtap="suggest">试算一项社团承诺</button>
+      </view>
+      <view class="exchange" wx:for="{{turns}}" wx:key="id">
+        <view class="ink-user">{{item.text}}</view>
+        <view class="ink-reply">{{item.reply}}</view>
+        <button wx:if="{{item.action}}" class="btn small ink-link" data-action="{{item.action}}" data-week="{{item.week}}" bindtap="toCalendar">{{item.action === 'setup' ? '设置作息' : item.action === 'tasks' ? '去落笔查看' : item.action === 'events' ? '补活动时间' : '看画卷'}}</button>
+      </view>
+      <view id="end"></view>
     </view>
-    <button class="btn primary block" bindtap="importNotice" loading="{{busy}}" disabled="{{busy}}">导入</button>
-    <view wx:if="{{busy}}" class="muted gap">正在整理事项与时间…（服务器闲置后第一次要半分钟左右）</view>
-    <view wx:if="{{error}}" class="error gap">{{error}}</view>
-    <view wx:if="{{summary}}" class="notice gap">
-      <view>{{summary}}</view>
-      <button class="btn small gap" bindtap="toCalendar">去画卷看看</button>
+  </scroll-view>
+  <view class="ink-dock">
+    <view wx:if="{{error}}" class="error" aria-role="alert">{{error}}</view>
+    <view wx:if="{{busy}}" class="muted" aria-role="status">司序正在处理…</view>
+    <view class="ink-compose">
+      <textarea class="ink" value="{{text}}" bindinput="onInput" maxlength="20000" disabled="{{busy}}" placeholder="发给司序" show-confirm-bar="{{false}}" />
+      <view class="ink-tools">
+        <button class="btn small" bindtap="pasteClipboard" disabled="{{busy}}">粘贴</button>
+        <picker range="{{modes}}" value="{{mode}}" bindchange="onMode" disabled="{{busy}}"><view class="mode">{{modes[mode]}}</view></picker>
+        <button class="btn small primary ink-send" bindtap="send" loading="{{busy}}" disabled="{{busy || !text}}">发送</button>
+      </view>
     </view>
+    <view wx:if="{{mode === 1}}" class="muted ink-privacy">最近几轮模型对话会发给 DeepSeek。</view>
   </view>
-  <view class="muted tip">通知原文会发给司序的计算服务整理；清单存在你自己的微信账号下，只有你能看到。</view>
 </view>
